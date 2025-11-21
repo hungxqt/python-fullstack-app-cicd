@@ -7,6 +7,10 @@
 teette
 adada
 opopo
+adad
+adad
+adad
+ada
 
 - ⚡ [**FastAPI**](https://fastapi.tiangolo.com) for the Python backend API.
     - 🧰 [SQLModel](https://sqlmodel.tiangolo.com) for the Python SQL database interactions (ORM).
