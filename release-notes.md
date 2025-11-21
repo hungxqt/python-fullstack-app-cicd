@@ -1,7 +1,7 @@
 # Release Notes
 
 ## Latest Changes
-
+adadadadad
 ### Fixes
 
 * 🐛 Fix `parse_cors` function to be consistent for both empty string and empty list. PR [#1672](https://github.com/fastapi/full-stack-fastapi-template/pull/1672) by [@rolkotaki](https://github.com/rolkotaki).
