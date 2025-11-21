@@ -11,11 +11,15 @@ pipeline {
         }
 
         stage('info') {
-            sh 'whoami; id; hostname; date'
+            steps {
+                sh 'whoami; id; hostname; date'
+            }
         }
-        
+
         stage('pwd') {
-            sh 'pwd'
+            steps {
+                sh 'pwd; ls -al'
+            }
         }
     }
 }
