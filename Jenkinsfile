@@ -5,7 +5,10 @@ pipeline {
 
     stages {
         stage('info') {
-            sh 'whoami'
+            sh 'whoami; id; hostname; date'
+        }
+        stage('pwd') {
+            sh 'pwd'
         }
     }
 }
