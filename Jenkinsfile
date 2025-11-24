@@ -21,5 +21,16 @@ pipeline {
                 sh 'pwd; ls -al'
             }
         }
+        stage('kubectl test') {
+            steps {
+                withCredentials([ file(credentialsId: 'vmware-kubeconfig', variable: 'KUBECONFIG_FILE') ]) {
+                    sh '''
+                        export KUBECONFIG=${KUBECONFIG_FILE}
+                        kubectl get nodes
+                        kubectl get pods --all-namespaces
+                    '''
+                }
+            }
+        }
     }
 }
