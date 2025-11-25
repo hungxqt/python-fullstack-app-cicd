@@ -48,7 +48,7 @@ pipeline {
                     withCredentials([file(credentialsId: 'vmware-kubeconfig', variable: 'KUBECONFIG_FILE')]) {
 
                         def exists = sh(
-                            script: 'export KUBECONFIG=${KUBECONFIG_FILE} && kubectl -n fastapi-backend get deployment fastapi-backend >/dev/null 2>&1',
+                            script: 'export KUBECONFIG=${KUBECONFIG_FILE} && kubectl -n fastapi-backend get deployment fastapi-backend-deployment >/dev/null 2>&1',
                             returnStatus: true
                         )
 
@@ -78,8 +78,8 @@ pipeline {
                             export KUBECONFIG=${KUBECONFIG_FILE}
                             export TAG=${env.SHORT_COMMIT_HASH}
 
-                            kubectl -n fastapi-backend set image deployment/fastapi-backend-deployment fastapi-backend=${DOCKER_REGISTRY}/${DOCKER_IMAGE_BACKEND}:${TAG}
-                            kubectl -n fastapi-frontend set image deployment/fastapi-frontend-deployment fastapi-frontend=${DOCKER_REGISTRY}/${DOCKER_IMAGE_FRONTEND}:${TAG}
+                            kubectl -n fastapi-backend set image deployment/fastapi-backend-deployment fastapi-backend=\${DOCKER_REGISTRY}/${DOCKER_IMAGE_BACKEND}:\${TAG}
+                            kubectl -n fastapi-frontend set image deployment/fastapi-frontend-deployment fastapi-frontend=\${DOCKER_REGISTRY}/${DOCKER_IMAGE_FRONTEND}:\${TAG}
                         """
                     }
                 }
