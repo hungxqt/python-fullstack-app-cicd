@@ -19,7 +19,7 @@ pipeline {
             }
         }
 
-        stage('Build Frontend Docker Image') {
+        stage('Build Docker Image') {
             steps {
                 script {
                     withCredentials([ usernamePassword(credentialsId: 'fastapi-dockerhub-login', usernameVariable: 'DOCKERHUB_USERNAME', passwordVariable: 'DOCKERHUB_PASSWORD') ]) {
@@ -33,22 +33,6 @@ pipeline {
 
                             docker compose build backend
                             docker compose push backend
-                        '''
-                    }
-                }
-            }
-        }
-
-        stage('Build Backend Docker Image') {
-            steps {
-                script {
-                    withCredentials([ usernamePassword(credentialsId: 'fastapi-dockerhub-login', usernameVariable: 'DOCKERHUB_USERNAME', passwordVariable: 'DOCKERHUB_PASSWORD') ]) {
-                        sh '''
-                            echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
-
-                            docker build -t fastapi-backend:${env.SHORT_COMMIT_HASH} -f ./backend/Dockerfile ./backend
-                            docker tag fastapi-backend:${env.SHORT_COMMIT_HASH} $DOCKERHUB_USERNAME/fastapi-backend:${env.SHORT_COMMIT_HASH}
-                            docker push $DOCKERHUB_USERNAME/fastapi-backend:${env.SHORT_COMMIT_HASH}
                         '''
                     }
                 }
