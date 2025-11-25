@@ -13,7 +13,7 @@ pipeline {
         stage('Get Short Commit Hash') {
             steps {
                 script {
-                    env.SHORT_COMMIT_HASH = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
+                    env.SHORT_COMMIT_HASH = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
                     echo "Short Commit Hash: ${env.SHORT_COMMIT_HASH}"
                 }
             }
@@ -72,7 +72,7 @@ pipeline {
             steps {
                 script {
                     withCredentials([file(credentialsId: 'vmware-kubeconfig', variable: 'KUBECONFIG_FILE')]) {
-                        dir('test-python-fullstack-app') {
+                        dir('test-python-fullstack-app/test-python-fullstack-app') {
                             sh """
                                 set -e
 
