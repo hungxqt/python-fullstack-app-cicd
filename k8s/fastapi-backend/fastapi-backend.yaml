@@ -42,7 +42,7 @@ spec:
 
 ---
 
-apiVersion: apps/v1
+apiVersion: v1
 kind: Service
 metadata:
   name: fastapi-backend-clusterip
@@ -75,13 +75,13 @@ spec:
     - host: api.fastapi.local
       http:
         paths:
-          - backend:
+          - path: /
+            pathType: Prefix
+            backend:
               service:
                 name: fastapi-backend-clusterip
                 port:
                   number: 8000
-            path: /
-            pathType: Prefix
 
 ---
 
@@ -89,7 +89,7 @@ apiVersion: autoscaling/v1
 kind: HorizontalPodAutoscaler
 metadata:
   name: fastapi-backend-hpa
-  namespace: fastapi-backend-hpa
+  namespace: fastapi-backend
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
