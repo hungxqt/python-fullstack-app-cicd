@@ -73,7 +73,8 @@ pipeline {
                 script {
                     withCredentials([file(credentialsId: 'vmware-kubeconfig', variable: 'KUBECONFIG_FILE')]) {
                         sh """
-                            ls ./test-python-fullstack-app
+                            pwd
+                            ls ./test-python-fullstack-app/test-python-fullstack-app
                             set -e
 
                             . .env
