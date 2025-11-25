@@ -1,6 +1,6 @@
 services:
   frontend:
-    image: ${DOCKER_REGISTRY}/${DOCKER_IMAGE_FRONTEND}:${TAG:-latest}'
+    image: ${DOCKER_REGISTRY}/${DOCKER_IMAGE_FRONTEND}:${TAG:-latest}
     restart: always
     env_file:
       - .env
@@ -13,7 +13,7 @@ services:
         - NODE_ENV=production
 
   backend:
-    image: '${DOCKER_REGISTRY}/${DOCKER_IMAGE_BACKEND}:${TAG:-latest}'
+    image: ${DOCKER_REGISTRY}/${DOCKER_IMAGE_BACKEND}:${TAG:-latest}
     restart: always
     env_file:
       - .env
