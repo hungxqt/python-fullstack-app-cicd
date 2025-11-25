@@ -74,7 +74,7 @@ pipeline {
                     withCredentials([file(credentialsId: 'vmware-kubeconfig', variable: 'KUBECONFIG_FILE')]) {
                         sh """
                             pwd
-                            ls ./test-python-fullstack-app/test-python-fullstack-app
+                            ls /var/lib/jenkins/workspace/test-python-fullstack-app/test-python-fullstack-app -la
                             set -e
 
                             . .env
