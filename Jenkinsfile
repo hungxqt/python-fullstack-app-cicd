@@ -23,10 +23,9 @@ pipeline {
             steps {
                 script {
                     withCredentials([ usernamePassword(credentialsId: 'fastapi-dockerhub-login', usernameVariable: 'DOCKERHUB_USERNAME', passwordVariable: 'DOCKERHUB_PASSWORD') ]) {
+                        sh (script: 'echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin')
+
                         sh """
-
-                            echo "${DOCKERHUB_PASSWORD}" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
-
                             export TAG=${env.SHORT_COMMIT_HASH}
 
                             docker compose -f docker-compose-build.yml build frontend
@@ -36,6 +35,7 @@ pipeline {
                             docker compose -f docker-compose-build.yml push backend
 
                             rm -rf /tmp/dockercfg
+
                         """
                     }
                 }
