@@ -41,5 +41,4 @@ COPY ./tests /app/tests
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync
 
-RUN sleep 3000
 CMD ["fastapi", "run", "--workers", "4", "app/main.py"]
