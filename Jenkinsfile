@@ -72,15 +72,18 @@ pipeline {
             steps {
                 script {
                     withCredentials([file(credentialsId: 'vmware-kubeconfig', variable: 'KUBECONFIG_FILE')]) {
-                        sh """
-                            set -e
-                            . .env
-                            export KUBECONFIG=${KUBECONFIG_FILE}
-                            export TAG=${env.SHORT_COMMIT_HASH}
+                        dir('test-python-fullstack-app') {
+                            sh """
+                                set -e
 
-                            kubectl -n fastapi-backend set image deployment/fastapi-backend-deployment fastapi-backend=\${DOCKER_REGISTRY}/\${DOCKER_IMAGE_BACKEND}:\${TAG}
-                            kubectl -n fastapi-frontend set image deployment/fastapi-frontend-deployment fastapi-frontend=\${DOCKER_REGISTRY}/\${DOCKER_IMAGE_FRONTEND}:\${TAG}
-                        """
+                                . .env
+                                export KUBECONFIG=${KUBECONFIG_FILE}
+                                export TAG=${env.SHORT_COMMIT_HASH}
+
+                                kubectl -n fastapi-backend set image deployment/fastapi-backend-deployment fastapi-backend=\${DOCKER_REGISTRY}/\${DOCKER_IMAGE_BACKEND}:\${TAG}
+                                kubectl -n fastapi-frontend set image deployment/fastapi-frontend-deployment fastapi-frontend=\${DOCKER_REGISTRY}/\${DOCKER_IMAGE_FRONTEND}:\${TAG}
+                            """
+                        }
                     }
                 }
             }
