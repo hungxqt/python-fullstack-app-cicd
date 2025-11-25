@@ -43,7 +43,7 @@ services:
       - traefik.http.services.${STACK_NAME?Variable not set}-adminer.loadbalancer.server.port=8080
 
   prestart:
-    image: '${DOCKER_IMAGE_BACKEND?Variable not set}:${TAG-latest}'
+    image: '${DOCKER_REGISTRY}/${DOCKER_IMAGE_BACKEND}:${TAG-latest}'
     build:
       context: ./backend
     networks:
@@ -76,7 +76,7 @@ services:
       - SENTRY_DSN=${SENTRY_DSN}
 
   backend:
-    image: '${DOCKER_IMAGE_BACKEND?Variable not set}:${TAG-latest}'
+    image: '${DOCKER_REGISTRY}/${DOCKER_IMAGE_BACKEND}:${TAG-latest}'
     restart: always
     networks:
       - traefik-public
@@ -135,7 +135,7 @@ services:
       - traefik.http.routers.${STACK_NAME?Variable not set}-backend-http.middlewares=https-redirect
 
   frontend:
-    image: '${DOCKER_IMAGE_FRONTEND?Variable not set}:${TAG-latest}'
+    image: '${DOCKER_REGISTRY}/${DOCKER_IMAGE_FRONTEND}:${TAG:-latest}'
     restart: always
     networks:
       - traefik-public
@@ -143,7 +143,7 @@ services:
     build:
       context: ./frontend
       args:
-        - VITE_API_URL=https://api.${DOMAIN?Variable not set}
+        - VITE_API_URL=http://api.${DOMAIN?Variable not set}
         - NODE_ENV=production
     labels:
       - traefik.enable=true

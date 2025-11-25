@@ -10,17 +10,85 @@ pipeline {
             }
         }
 
-        stage('info') {
+        stage('Get Short Commit Hash') {
             steps {
-                sh 'whoami; id; hostname; date'
+                script {
+                    env.SHORT_COMMIT_HASH = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
+                    echo "Short Commit Hash: ${env.SHORT_COMMIT_HASH}"
+                }
             }
         }
+
+        stage('Build Frontend Docker Image') {
+            steps {
+                script {
+                    withCredentials([ usernamePassword(credentialsId: 'fastapi-dockerhub-login', usernameVariable: 'DOCKERHUB_USERNAME', passwordVariable: 'DOCKERHUB_PASSWORD') ]) {
+                        sh '''
+                            echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+
+                            export TAG=${env.SHORT_COMMIT_HASH}
+
+                            docker compose build frontend
+                            docker compose push frontend
+
+                            docker compose build backend
+                            docker compose push backend
+                        '''
+                    }
+                }
+            }
+        }
+
+        stage('Build Backend Docker Image') {
+            steps {
+                script {
+                    withCredentials([ usernamePassword(credentialsId: 'fastapi-dockerhub-login', usernameVariable: 'DOCKERHUB_USERNAME', passwordVariable: 'DOCKERHUB_PASSWORD') ]) {
+                        sh '''
+                            echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+
+                            docker build -t fastapi-backend:${env.SHORT_COMMIT_HASH} -f ./backend/Dockerfile ./backend
+                            docker tag fastapi-backend:${env.SHORT_COMMIT_HASH} $DOCKERHUB_USERNAME/fastapi-backend:${env.SHORT_COMMIT_HASH}
+                            docker push $DOCKERHUB_USERNAME/fastapi-backend:${env.SHORT_COMMIT_HASH}
+                        '''
+                    }
+                }
+            }
+        }
+
+        stage('First build check') {
+            steps {
+                script {
+                    withCredentials([file(credentialsId: 'vmware-kubeconfig', variable: 'KUBECONFIG_FILE')]) {
+
+                        def exists = sh(
+                            script: "export KUBECONFIG=${KUBECONFIG_FILE} && kubectl -n fastapi-backend get deployment fastapi-backend >/dev/null 2>&1",
+                            returnStatus: true
+                        )
+
+                        if (exists != 0) {
+                            sh """
+                                set -e
+                                export KUBECONFIG=${KUBECONFIG_FILE}
+                                echo "Deployment not found. Running initial apply..."
+                                kubectl apply -f k8s/fastapi-backend/fastapi-backend.yaml
+                                kubectl apply -f k8s/fastapi-frontend/fastapi-frontend.yaml
+                            """
+                        } else {
+                            echo "Deployment already exists. Skipping apply."
+                        }
+                    }
+                }
+            }
+        }
+
+
 
         stage('pwd') {
             steps {
                 sh 'pwd; ls -al'
             }
         }
+        
         stage('kubectl test') {
             steps {
                 withCredentials([ file(credentialsId: 'vmware-kubeconfig', variable: 'KUBECONFIG_FILE') ]) {

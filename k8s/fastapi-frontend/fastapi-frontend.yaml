@@ -1,0 +1,100 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: fastapi-frontend-config
+  namespace: fastapi-frontend
+data:
+  IMAGE_FRONTEND_TAG: "latest"
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fastapi-frontend-deployment
+  labels:
+    app: fastapi-frontend-deployment
+  namespace: fastapi-frontend
+
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: fastapi-frontend-deployment
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 2
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: fastapi-frontend-deployment
+      namespace: fastapi-frontend
+    spec:
+      containers:
+        - name: fastapi-frontend
+          image: 'tqhung0105/fastapi-frontend:latest'
+          ports:
+            - containerPort: 8000
+              name: http
+              protocol: TCP
+
+---
+
+apiVersion: apps/v1
+kind: Service
+metadata:
+  name: fastapi-frontend-clusterip
+  namespace: fastapi-frontend
+spec:
+  internalTrafficPolicy: Cluster
+  ipFamilies:
+    - IPv4
+  ipFamilyPolicy: SingleStack
+  ports:
+    - name: http
+      port: 8000
+      protocol: TCP
+      targetPort: 8000
+  selector:
+    app: fastapi-frontend-deployment
+  sessionAffinity: None
+  type: ClusterIP
+
+---
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: fastapi-frontend-ingress
+  namespace: fastapi-frontend
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: fastapi.local
+      http:
+        paths:
+          - backend:
+              service:
+                name: fastapi-frontend-clusterip
+                port:
+                  number: 8000
+            path: /
+            pathType: Prefix
+
+---
+
+apiVersion: autoscaling/v1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: fastapi-frontend-hpa
+  namespace: fastapi-frontend-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: fastapi-frontend-deployment
+  minReplicas: 1
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 50
