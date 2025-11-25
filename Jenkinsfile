@@ -77,7 +77,7 @@ pipeline {
                             ls /var/lib/jenkins/workspace/test-python-fullstack-app/test-python-fullstack-app -la
                             set -e
 
-                            . .env
+                            . "$WORKSPACE/test-python-fullstack-app/.env"
                             export KUBECONFIG=${KUBECONFIG_FILE}
                             export TAG=${env.SHORT_COMMIT_HASH}
 
