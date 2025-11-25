@@ -36,13 +36,13 @@ spec:
         - name: fastapi-frontend
           image: 'tqhung0105/fastapi-frontend:latest'
           ports:
-            - containerPort: 8000
+            - containerPort: 80
               name: http
               protocol: TCP
 
 ---
 
-apiVersion: apps/v1
+apiVersion: v1
 kind: Service
 metadata:
   name: fastapi-frontend-clusterip
@@ -54,9 +54,9 @@ spec:
   ipFamilyPolicy: SingleStack
   ports:
     - name: http
-      port: 8000
+      port: 80
       protocol: TCP
-      targetPort: 8000
+      targetPort: 80
   selector:
     app: fastapi-frontend-deployment
   sessionAffinity: None
@@ -75,13 +75,13 @@ spec:
     - host: fastapi.local
       http:
         paths:
-          - backend:
+          - path: /
+            pathType: Prefix
+            backend:
               service:
                 name: fastapi-frontend-clusterip
                 port:
-                  number: 8000
-            path: /
-            pathType: Prefix
+                  number: 80
 
 ---
 
@@ -89,7 +89,7 @@ apiVersion: autoscaling/v1
 kind: HorizontalPodAutoscaler
 metadata:
   name: fastapi-frontend-hpa
-  namespace: fastapi-frontend-hpa
+  namespace: fastapi-frontend
 spec:
   scaleTargetRef:
     apiVersion: apps/v1

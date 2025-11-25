@@ -1,6 +1,6 @@
 services:
   frontend:
-    image: '${DOCKER_REGISTRY}/${DOCKER_IMAGE_FRONTEND}:${TAG:-latest}'
+    image: ${DOCKER_REGISTRY}/${DOCKER_IMAGE_FRONTEND}:${TAG:-latest}'
     restart: always
     env_file:
       - .env
