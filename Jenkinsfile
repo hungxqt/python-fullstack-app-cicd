@@ -22,7 +22,7 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    withCredentials([ usernamePassword(credentialsId: 'fastapi-dockerhub-login', usernameVariable: 'DOCKERHUB_USERNAME', passwordVariable: 'DOCKERHUB_PASSWORD') ]) {
+                    withCredentials([ usernamePassword(credentialsId: 'fastapi-dockerhub-login', usernameVariable: 'DOCKERHUB_USERNAME', passwordVariable: 'DOCKERHUB_PASSWORD')]) {
                         sh(script: 'echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin')
 
                         sh """
@@ -71,10 +71,17 @@ pipeline {
         stage('Reapply the new image') {
             steps {
                 script {
-                    withCredentials([file(credentialsId: 'vmware-kubeconfig', variable: 'KUBECONFIG_FILE')]) {
+                    withCredentials([file(credentialsId: 'vmware-kubeconfig', variable: 'KUBECONFIG_FILE'), 
+                                    string(credentialsId: 'DOCKER_REGISTRY_FASTAPI_PROJECT', variable: 'DOCKER_REGISTRY'), 
+                                    string(credentialsId: 'DOCKER_IMAGE_BACKEND_FASTAPI_PROJECT', variable: 'DOCKER_IMAGE_BACKEND'), 
+                                    string(credentialsId: 'DOCKER_IMAGE_FRONTEND_FASTAPI_PROJECT', variable: 'DOCKER_IMAGE_FRONTEND') 
+                                    ]) {
                         sh """
                             set -e
 
+                            export DOCKER_REGISTRY=${DOCKER_REGISTRY}
+                            export DOCKER_IMAGE_BACKEND=${DOCKER_IMAGE_BACKEND}
+                            export DOCKER_IMAGE_FRONTEND=${DOCKER_IMAGE_FRONTEND}
                             export KUBECONFIG=${KUBECONFIG_FILE}
                             export TAG=${env.SHORT_COMMIT_HASH}
 
