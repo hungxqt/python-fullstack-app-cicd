@@ -1,0 +1,46 @@
+# Domain
+# This would be set to the production domain with an env var on deployment
+# used by Traefik to transmit traffic and aqcuire TLS certificates
+DOMAIN=
+# To test the local Traefik config
+# DOMAIN=
+
+# Used by the backend to generate links in emails to the frontend
+FRONTEND_HOST=
+# In staging and production, set this env var to the frontend host, e.g.
+# FRONTEND_HOST=
+
+# Environment: local, staging, production
+ENVIRONMENT=
+
+PROJECT_NAME=
+STACK_NAME=
+
+# Backend
+BACKEND_CORS_ORIGINS=
+SECRET_KEY=
+FIRST_SUPERUSER=
+FIRST_SUPERUSER_PASSWORD=
+
+# Emails
+SMTP_HOST=
+SMTP_USER=
+SMTP_PASSWORD=
+EMAILS_FROM_EMAIL=
+SMTP_TLS=True
+SMTP_SSL=False
+SMTP_PORT=587
+
+# Postgres
+POSTGRES_SERVER=
+POSTGRES_PORT=
+POSTGRES_DB=
+POSTGRES_USER=
+POSTGRES_PASSWORD=
+
+SENTRY_DSN=
+
+# Configure these with your own Docker registry images
+DOCKER_IMAGE_BACKEND=
+DOCKER_IMAGE_FRONTEND=
+DOCKER_REGISTRY=
