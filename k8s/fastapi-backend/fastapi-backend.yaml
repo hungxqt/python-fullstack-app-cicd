@@ -14,18 +14,8 @@ data:
   POSTGRES_PORT: "5432"
   POSTGRES_DB: "fastapi"
   POSTGRES_USER: "fastapi"
-
----
-
-apiVersion: v1
-kind: Secret
-metadata:
-  name: fastapi-backend-secret
-type: Opaque
-stringData:
-  SECRET_KEY: "AahZZSyMmAF3bkq4ct5qbxE8qWQpEK8bs3RbesSVL44"
-  POSTGRES_PASSWORD: "fastapi"
-  FIRST_SUPERUSER_PASSWORD: "hungqt"
+  ENVIRONMENT: "production"
+  BACKEND_CORS_ORIGINS: "https://fastapi.local,https://dashboard.fastapi.local"
 
 ---
 
@@ -36,11 +26,9 @@ metadata:
   namespace: fastapi-backend
 type: Opaque
 stringData:
-  secret-key: "AahZZSyMmAF3bkq4ct5qbxE8qWQpEK8bs3RbesSVL44"
-  first-superuser: "tqhung0105@gmail.com"
-  first-superuser-password: "hungqt"
-  postgres-user: "fastapi"
-  postgres-password: "hungqt"
+  SECRET_KEY: "AahZZSyMmAF3bkq4ct5qbxE8qWQpEK8bs3RbesSVL44"
+  POSTGRES_PASSWORD: "fastapi"
+  FIRST_SUPERUSER_PASSWORD: "hungqt"
 
 ---
 
@@ -79,7 +67,7 @@ spec:
             - configMapRef:
                 name: fastapi-backend-config
             - secretRef:
-                name: fastapi-backend-secret
+                name: fastapi-backend-secrets
 
 ---
 

@@ -36,10 +36,18 @@ COPY ./pyproject.toml ./uv.lock ./alembic.ini /app/
 COPY ./app /app/app
 COPY ./tests /app/tests
 
-COPY ../.env/ /app/.env
+ARG PROJECT_NAME
+ARG POSTGRES_SERVER
+ARG POSTGRES_USER
+ARG FIRST_SUPERUSER
+ARG FIRST_SUPERUSER_PASSWORD
 
-RUN ls -la
-RUN ls -la /app/app
+ENV PROJECT_NAME=${PROJECT_NAME}
+ENV POSTGRES_SERVER=${POSTGRES_SERVER}
+ENV POSTGRES_USER=${POSTGRES_USER}
+ENV FIRST_SUPERUSER=${FIRST_SUPERUSER}
+ENV FIRST_SUPERUSER_PASSWORD=${FIRST_SUPERUSER_PASSWORD}
+
 
 # Sync the project
 # Ref: https://docs.astral.sh/uv/guides/integration/docker/#intermediate-layers
