@@ -36,6 +36,11 @@ COPY ./pyproject.toml ./uv.lock ./alembic.ini /app/
 COPY ./app /app/app
 COPY ./tests /app/tests
 
+COPY ../.env/ /app/.env
+
+RUN ls -la
+RUN ls -la /app/app
+
 # Sync the project
 # Ref: https://docs.astral.sh/uv/guides/integration/docker/#intermediate-layers
 RUN --mount=type=cache,target=/root/.cache/uv \
