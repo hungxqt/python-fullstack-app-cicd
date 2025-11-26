@@ -8,6 +8,21 @@ data:
 
 ---
 
+apiVersion: v1
+kind: Secret
+metadata:
+  name: fastapi-backend-secrets
+  namespace: fastapi-backend
+type: Opaque
+stringData:
+  secret-key: "AahZZSyMmAF3bkq4ct5qbxE8qWQpEK8bs3RbesSVL44"
+  first-superuser: "tqhung0105@gmail.com"
+  first-superuser-password: "hungqt"
+  postgres-user: "fastapi"
+  postgres-password: "hungqt"
+
+---
+
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -39,6 +54,41 @@ spec:
             - containerPort: 8000
               name: http
               protocol: TCP
+          env:
+            - name: ENVIRONMENT
+              value: "production"
+            - name: DOMAIN
+              value: "fastapi.local"
+            - name: FRONTEND_HOST
+              value: "https://fastapi.local"
+            - name: BACKEND_CORS_ORIGINS
+              value: "https://fastapi.local,https://dashboard.fastapi.local"
+            - name: PROJECT_NAME
+              value: "Full Stack FastAPI Project"
+            - name: SECRET_KEY
+              value: AahZZSyMmAF3bkq4ct5qbxE8qWQpEK8bs3RbesSVL44
+            - name: FIRST_SUPERUSER
+              value: fastapi
+            - name: FIRST_SUPERUSER_PASSWORD
+              value: fastapi
+            - name: POSTGRES_SERVER
+              value: "192.168.64.192"
+            - name: POSTGRES_PORT
+              value: "5432"
+            - name: POSTGRES_DB
+              value: "fastapi"
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: fastapi-backend-secrets
+                  key: postgres-user
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: fastapi-backend-secrets
+                  key: postgres-password
+            - name: EMAILS_FROM_EMAIL
+              value: "info@example.com"
 
 ---
 
