@@ -10,6 +10,17 @@ pipeline {
             }
         }
 
+        stage('Load .env file') {
+            steps {
+                withCredentials([file(credentialsId: 'FASTAPI_ENV', variable: 'ENV_FILE')]) {
+                    script {
+                        def props = readProperties file: ENV_FILE
+                        props.each { k, v -> env[k] = v }
+                    }
+                }
+            }
+        }
+
         stage('Get Short Commit Hash') {
             steps {
                 script {
@@ -26,6 +37,9 @@ pipeline {
                         sh (script: 'echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin')
 
                         sh """
+                            ls -la 
+                            pwd
+
                             export TAG=${env.SHORT_COMMIT_HASH}
 
                             docker compose -f docker-compose-build.yml build frontend
