@@ -5,6 +5,27 @@ metadata:
   namespace: fastapi-backend
 data:
   IMAGE_BACKEND_TAG: "latest"
+  DOMAIN: "fastapi.local"
+  FRONTEND_HOST: "http://fastapi.local:5173"
+  PROJECT_NAME: "Full Stack FastAPI Project"
+  STACK_NAME: "full-stack-fastapi-project"
+  FIRST_SUPERUSER: "tqhung0105@gmail.com"
+  POSTGRES_SERVER: "192.168.64.192"
+  POSTGRES_PORT: "5432"
+  POSTGRES_DB: "fastapi"
+  POSTGRES_USER: "fastapi"
+
+---
+
+apiVersion: v1
+kind: Secret
+metadata:
+  name: fastapi-backend-secret
+type: Opaque
+stringData:
+  SECRET_KEY: "AahZZSyMmAF3bkq4ct5qbxE8qWQpEK8bs3RbesSVL44"
+  POSTGRES_PASSWORD: "fastapi"
+  FIRST_SUPERUSER_PASSWORD: "hungqt"
 
 ---
 
@@ -54,41 +75,11 @@ spec:
             - containerPort: 8000
               name: http
               protocol: TCP
-          env:
-            - name: ENVIRONMENT
-              value: "production"
-            - name: DOMAIN
-              value: "fastapi.local"
-            - name: FRONTEND_HOST
-              value: "https://fastapi.local"
-            - name: BACKEND_CORS_ORIGINS
-              value: "https://fastapi.local,https://dashboard.fastapi.local"
-            - name: PROJECT_NAME
-              value: "Full Stack FastAPI Project"
-            - name: SECRET_KEY
-              value: AahZZSyMmAF3bkq4ct5qbxE8qWQpEK8bs3RbesSVL44
-            - name: FIRST_SUPERUSER
-              value: fastapi
-            - name: FIRST_SUPERUSER_PASSWORD
-              value: fastapi
-            - name: POSTGRES_SERVER
-              value: "192.168.64.192"
-            - name: POSTGRES_PORT
-              value: "5432"
-            - name: POSTGRES_DB
-              value: "fastapi"
-            - name: POSTGRES_USER
-              valueFrom:
-                secretKeyRef:
-                  name: fastapi-backend-secrets
-                  key: postgres-user
-            - name: POSTGRES_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: fastapi-backend-secrets
-                  key: postgres-password
-            - name: EMAILS_FROM_EMAIL
-              value: "info@example.com"
+          envFrom:
+            - configMapRef:
+                name: fastapi-backend-config
+            - secretRef:
+                name: fastapi-backend-secret
 
 ---
 
