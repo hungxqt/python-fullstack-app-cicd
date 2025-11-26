@@ -76,18 +76,15 @@ pipeline {
                                     string(credentialsId: 'DOCKER_IMAGE_BACKEND_FASTAPI_PROJECT', variable: 'DOCKER_IMAGE_BACKEND'), 
                                     string(credentialsId: 'DOCKER_IMAGE_FRONTEND_FASTAPI_PROJECT', variable: 'DOCKER_IMAGE_FRONTEND') 
                                     ]) {
-                        sh """
+                        sh '''
                             set -e
 
-                            export DOCKER_REGISTRY=${DOCKER_REGISTRY}
-                            export DOCKER_IMAGE_BACKEND=${DOCKER_IMAGE_BACKEND}
-                            export DOCKER_IMAGE_FRONTEND=${DOCKER_IMAGE_FRONTEND}
-                            export KUBECONFIG=${KUBECONFIG_FILE}
-                            export TAG=${env.SHORT_COMMIT_HASH}
+                            export KUBECONFIG="$KUBECONFIG_FILE"
+                            export TAG="$SHORT_COMMIT_HASH"
 
-                            kubectl -n fastapi-backend set image deployment/fastapi-backend-deployment fastapi-backend=\${DOCKER_REGISTRY}/\${DOCKER_IMAGE_BACKEND}:\${TAG}
-                            kubectl -n fastapi-frontend set image deployment/fastapi-frontend-deployment fastapi-frontend=\${DOCKER_REGISTRY}/\${DOCKER_IMAGE_FRONTEND}:\${TAG}
-                        """
+                            kubectl -n fastapi-backend set image deployment/fastapi-backend-deployment fastapi-backend=${DOCKER_REGISTRY}/${DOCKER_IMAGE_BACKEND}:${TAG}
+                            kubectl -n fastapi-frontend set image deployment/fastapi-frontend-deployment fastapi-frontend=${DOCKER_REGISTRY}/${DOCKER_IMAGE_FRONTEND}:${TAG}
+                        '''
                     }
                 }
             }
