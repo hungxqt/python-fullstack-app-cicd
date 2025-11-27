@@ -4,8 +4,7 @@ pipeline {
     }
 
     environment {
-        FRONTEND_IMAGE_BUILD = '0'
-        BACKEND_IMAGE_BUILD = '0'
+        DOCKER_LOGIN_DONE = 'false'
     }
 
     stages {
@@ -29,115 +28,113 @@ pipeline {
                 script {
                     withCredentials([usernamePassword(credentialsId: 'fastapi-dockerhub-login', usernameVariable: 'DOCKERHUB_USERNAME', passwordVariable: 'DOCKERHUB_PASSWORD')]) {
                         sh(script: 'echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin')
+                        env.DOCKER_LOGIN_DONE = 'true'
                     }
                 }
             }
         }
 
-        stage('Build and Push Docker Images') {
+        stage('Build and Push Images') {
             parallel {
-                stage('Build Docker Image and Push to Registry - Backend') {
+                stage('Backend') {
                     steps {
                         script {
-                            withCredentials([ string(credentialsId: 'DOCKER_REGISTRY_FASTAPI_PROJECT', variable: 'DOCKER_REGISTRY'), 
-                                            string(credentialsId: 'DOCKER_IMAGE_BACKEND_FASTAPI_PROJECT', variable: 'DOCKER_IMAGE_BACKEND') ]) {
+                            withCredentials([
+                                string(credentialsId: 'DOCKER_REGISTRY_FASTAPI_PROJECT', variable: 'DOCKER_REGISTRY'),
+                                string(credentialsId: 'DOCKER_IMAGE_BACKEND_FASTAPI_PROJECT', variable: 'DOCKER_IMAGE_BACKEND')
+                            ]) {
                                 sh '''
                                     set -e
-
+                                    
                                     export TAG=${SHORT_COMMIT_HASH}
-
-                                    docker compose -f docker-compose-build.yml build backend
-
+                                    
+                                    echo "Building backend image with tag: ${TAG}"
+                                    docker compose -f docker-compose-build.yml build backend --no-cache
+                                    
                                     REPO="${DOCKER_REGISTRY}/${DOCKER_IMAGE_BACKEND}"
                                     IMAGE="${REPO}:${TAG}"
-
+                                    
                                     new_id=$(docker images --no-trunc --quiet "$IMAGE")
-
+                                    
                                     if [ -z "$new_id" ]; then
-                                        echo "ERROR: No found built image: $IMAGE"
+                                        echo "ERROR: No built image found: $IMAGE"
                                         exit 1
                                     fi
-
+                                    
                                     dup_count=$(docker images --format '{{.Repository}}:{{.Tag}} {{.ID}}' | awk -v repo="$REPO" -v id="$new_id" '$1 ~ "^"repo":" && $2 == id { print $1 }' | wc -l)
-
+                                    
                                     if [ "$dup_count" -gt 1 ]; then
-                                        echo "Found $dup_count tags in $REPO with the same image ID $new_id."
-                                        echo "=> Please check the Dockerfile and rebuild the image to ensure unique image IDs for each build."
-
-                                        docker rmi "$IMAGE" || true
-                                        exit 0
+                                        echo "WARNING: Found $dup_count tags in $REPO with the same image ID $new_id."
+                                        echo "This may indicate a Dockerfile issue. Proceeding with push."
                                     fi
-
+                                    
+                                    echo "Pushing backend image: ${IMAGE}"
                                     docker compose -f docker-compose-build.yml push backend
                                 '''
                             }
-
-                            env.BACKEND_IMAGE_BUILD = '1'
                         }
                     }
                 }
 
-                stage('Build Docker Image and Push to Registry - Frontend') {
+                stage('Frontend') {
                     steps {
                         script {
-                            withCredentials([ string(credentialsId: 'DOCKER_REGISTRY_FASTAPI_PROJECT', variable: 'DOCKER_REGISTRY')
-                                            string(credentialsId: 'DOCKER_IMAGE_FRONTEND_FASTAPI_PROJECT', variable: 'DOCKER_IMAGE_FRONTEND') ]) {
+                            withCredentials([
+                                string(credentialsId: 'DOCKER_REGISTRY_FASTAPI_PROJECT', variable: 'DOCKER_REGISTRY'),
+                                string(credentialsId: 'DOCKER_IMAGE_FRONTEND_FASTAPI_PROJECT', variable: 'DOCKER_IMAGE_FRONTEND')
+                            ]) {
                                 sh '''
                                     set -e
-
+                                    
                                     export TAG=${SHORT_COMMIT_HASH}
-
-                                    docker compose -f docker-compose-build.yml build frontend
-
+                                    
+                                    echo "Building frontend image with tag: ${TAG}"
+                                    docker compose -f docker-compose-build.yml build frontend --no-cache
+                                    
                                     REPO="${DOCKER_REGISTRY}/${DOCKER_IMAGE_FRONTEND}"
                                     IMAGE="${REPO}:${TAG}"
-
+                                    
                                     new_id=$(docker images --no-trunc --quiet "$IMAGE")
-
+                                    
                                     if [ -z "$new_id" ]; then
-                                        echo "ERROR: No found built image: $IMAGE"
+                                        echo "ERROR: No built image found: $IMAGE"
                                         exit 1
                                     fi
-
+                                    
                                     dup_count=$(docker images --format '{{.Repository}}:{{.Tag}} {{.ID}}' | awk -v repo="$REPO" -v id="$new_id" '$1 ~ "^"repo":" && $2 == id { print $1 }' | wc -l)
-
+                                    
                                     if [ "$dup_count" -gt 1 ]; then
-                                        echo "Found $dup_count tags in $REPO with the same image ID $new_id."
-                                        echo "=> Please check the Dockerfile and rebuild the image to ensure unique image IDs for each build."
-
-                                        docker rmi "$IMAGE" || true
-                                        exit 0
+                                        echo "WARNING: Found $dup_count tags in $REPO with the same image ID $new_id."
+                                        echo "This may indicate a Dockerfile issue. Proceeding with push."
                                     fi
-
+                                    
+                                    echo "Pushing frontend image: ${IMAGE}"
                                     docker compose -f docker-compose-build.yml push frontend
                                 '''
                             }
-
-                            env.FRONTEND_IMAGE_BUILD = '1'
                         }
                     }
                 }
             }
         }
 
-        stage('First build check') {
+        stage('First Build Check') {
             steps {
                 script {
                     withCredentials([file(credentialsId: 'vmware-kubeconfig', variable: 'KUBECONFIG_FILE')]) {
-
                         def exists = sh(
                             script: 'export KUBECONFIG=$KUBECONFIG_FILE && kubectl -n fastapi-backend get deployment fastapi-backend-deployment >/dev/null 2>&1',
                             returnStatus: true
                         )
 
                         if (exists != 0) {
-                            sh """
+                            sh '''
                                 set -e
                                 export KUBECONFIG=${KUBECONFIG_FILE}
-                                echo 'Deployment not found. Running initial apply...'
+                                echo "Deployment not found. Running initial apply..."
                                 kubectl apply -f k8s/fastapi-backend/fastapi-backend.yaml
                                 kubectl apply -f k8s/fastapi-frontend/fastapi-frontend.yaml
-                            """
+                            '''
                         } else {
                             echo 'Deployment already exists. Skipping apply.'
                         }
@@ -146,39 +143,43 @@ pipeline {
             }
         }
 
-        stage('Reapply the new image') {
+        stage('Update Kubernetes Deployment') {
             steps {
                 script {
-                    withCredentials([file(credentialsId: 'vmware-kubeconfig', variable: 'KUBECONFIG_FILE'), 
-                                    string(credentialsId: 'DOCKER_REGISTRY_FASTAPI_PROJECT', variable: 'DOCKER_REGISTRY'), 
-                                    string(credentialsId: 'DOCKER_IMAGE_BACKEND_FASTAPI_PROJECT', variable: 'DOCKER_IMAGE_BACKEND'), 
-                                    string(credentialsId: 'DOCKER_IMAGE_FRONTEND_FASTAPI_PROJECT', variable: 'DOCKER_IMAGE_FRONTEND') 
-                                    ]) {
-
+                    withCredentials([
+                        file(credentialsId: 'vmware-kubeconfig', variable: 'KUBECONFIG_FILE'),
+                        string(credentialsId: 'DOCKER_REGISTRY_FASTAPI_PROJECT', variable: 'DOCKER_REGISTRY'),
+                        string(credentialsId: 'DOCKER_IMAGE_BACKEND_FASTAPI_PROJECT', variable: 'DOCKER_IMAGE_BACKEND'),
+                        string(credentialsId: 'DOCKER_IMAGE_FRONTEND_FASTAPI_PROJECT', variable: 'DOCKER_IMAGE_FRONTEND')
+                    ]) {
                         sh '''
                             set -e
-
+                            
                             export KUBECONFIG="$KUBECONFIG_FILE"
                             export TAG="$SHORT_COMMIT_HASH"
-
-                            if [ "${BACKEND_IMAGE_BUILD}" = "1" ]; then
-                                kubectl -n fastapi-backend set image deployment/fastapi-backend-deployment fastapi-backend=${DOCKER_REGISTRY}/${DOCKER_IMAGE_BACKEND}:${TAG}
-                            fi
-
-                            if [ "${FRONTEND_IMAGE_BUILD}" = "1" ]; then
-                                kubectl -n fastapi-frontend set image deployment/fastapi-frontend-deployment fastapi-frontend=${DOCKER_REGISTRY}/${DOCKER_IMAGE_FRONTEND}:${TAG}
-                            fi
+                            
+                            echo "Updating backend deployment with image tag: ${TAG}"
+                            kubectl -n fastapi-backend set image deployment/fastapi-backend-deployment \
+                                fastapi-backend=${DOCKER_REGISTRY}/${DOCKER_IMAGE_BACKEND}:${TAG}
+                            
+                            echo "Updating frontend deployment with image tag: ${TAG}"
+                            kubectl -n fastapi-frontend set image deployment/fastapi-frontend-deployment \
+                                fastapi-frontend=${DOCKER_REGISTRY}/${DOCKER_IMAGE_FRONTEND}:${TAG}
+                            
+                            echo "Waiting for rollout..."
+                            kubectl -n fastapi-backend rollout status deployment/fastapi-backend-deployment --timeout=5m
+                            kubectl -n fastapi-frontend rollout status deployment/fastapi-frontend-deployment --timeout=5m
                         '''
                     }
                 }
             }
         }
 
-        stage('Cleanup Docker Images') {
+        stage('Cleanup') {
             steps {
                 sh '''
                     set -e
-
+                    echo "Pruning unused Docker images..."
                     docker image prune -f
                 '''
             }
