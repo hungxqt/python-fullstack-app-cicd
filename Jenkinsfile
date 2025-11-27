@@ -187,6 +187,11 @@ pipeline {
     post {
         always {
             sh 'docker logout || true'
+            sh(script: '''
+                set -e
+                echo "Cleaning up build marker files..."
+                rm -f BACKEND_IMAGE_BUILDED FRONTEND_IMAGE_BUILDED
+            ''', label: 'Cleanup Marker Files')
         }
         failure {
             echo 'Pipeline failed! Check logs above for details.'
