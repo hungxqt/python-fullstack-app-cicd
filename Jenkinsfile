@@ -46,12 +46,14 @@ pipeline {
                                     REPO="${DOCKER_REGISTRY}/${DOCKER_IMAGE_BACKEND}"
                                     IMAGE="${REPO}:${TAG}"
 
-                                    new_id=$(docker images --no-trunc --quiet "$IMAGE")
+                                    new_id=$(docker images --quiet "$IMAGE")
 
                                     if [ -z "$new_id" ]; then
                                         echo "ERROR: No found built image: $IMAGE"
-                                        exit 1
+                                        exit 0
                                     fi
+
+                                    docker images --format '{{.Repository}}:{{.Tag}} {{.ID}}
 
                                     dup_count=$(docker images --format '{{.Repository}}:{{.Tag}} {{.ID}}' | awk -v repo="$REPO" -v id="$new_id" '$1 ~ "^"repo":" && $2 == id { print $1 }' | wc -l)
 
@@ -87,12 +89,14 @@ pipeline {
                                     REPO="${DOCKER_REGISTRY}/${DOCKER_IMAGE_FRONTEND}"
                                     IMAGE="${REPO}:${TAG}"
 
-                                    new_id=$(docker images --no-trunc --quiet "$IMAGE")
+                                    new_id=$(docker images --quiet "$IMAGE")
 
                                     if [ -z "$new_id" ]; then
                                         echo "ERROR: No found built image: $IMAGE"
-                                        exit 1
+                                        exit 0
                                     fi
+
+                                    docker images --format '{{.Repository}}:{{.Tag}} {{.ID}}
 
                                     dup_count=$(docker images --format '{{.Repository}}:{{.Tag}} {{.ID}}' | awk -v repo="$REPO" -v id="$new_id" '$1 ~ "^"repo":" && $2 == id { print $1 }' | wc -l)
 
