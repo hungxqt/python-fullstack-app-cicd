@@ -32,7 +32,7 @@ pipeline {
                         sh '''
                             set -e
 
-                            export TAG=${env.SHORT_COMMIT_HASH}
+                            export TAG=${SHORT_COMMIT_HASH}
 
                             docker compose -f docker-compose-build.yml build
 
