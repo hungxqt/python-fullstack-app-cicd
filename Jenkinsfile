@@ -3,10 +3,6 @@ pipeline {
         label 'hungqt-server'
     }
 
-    environment {
-
-    }
-
     stages {
         stage('Checkout') {
             steps {
