@@ -10,6 +10,17 @@ pipeline {
             }
         }
 
+        stage('Cleaned the Environment') {
+            steps {
+                sh '''
+                    set -e
+
+                    echo "Cleaning up any existing marker files..."
+                    rm -f BACKEND_IMAGE_BUILDED FRONTEND_IMAGE_BUILDED
+                '''
+            }
+        }
+
         stage('Get Short Commit Hash') {
             steps {
                 script {
@@ -193,9 +204,11 @@ pipeline {
                 rm -f BACKEND_IMAGE_BUILDED FRONTEND_IMAGE_BUILDED
             ''', label: 'Cleanup Marker Files')
         }
+
         failure {
             echo 'Pipeline failed! Check logs above for details.'
         }
+
         success {
             echo 'Pipeline completed successfully!'
         }
