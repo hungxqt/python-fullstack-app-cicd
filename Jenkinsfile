@@ -80,7 +80,7 @@ pipeline {
                 stage('Build Docker Image and Push to Registry - Frontend') {
                     steps {
                         script {
-                            withCredentials([ string(credentialsId: 'DOCKER_REGISTRY_FASTAPI_PROJECT', variable: 'DOCKER_REGISTRY')
+                            withCredentials([ string(credentialsId: 'DOCKER_REGISTRY_FASTAPI_PROJECT', variable: 'DOCKER_REGISTRY'),
                                             string(credentialsId: 'DOCKER_IMAGE_FRONTEND_FASTAPI_PROJECT', variable: 'DOCKER_IMAGE_FRONTEND') ]) {
                                 sh '''
                                     set -e
