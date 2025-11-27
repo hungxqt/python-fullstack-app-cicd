@@ -53,7 +53,7 @@ pipeline {
                                         exit 0
                                     fi
 
-                                    docker images --format '{{.Repository}}:{{.Tag}} {{.ID}}
+                                    docker images --format '{{.Repository}}:{{.Tag}} {{.ID}}'
 
                                     dup_count=$(docker images --format '{{.Repository}}:{{.Tag}} {{.ID}}' | awk -v repo="$REPO" -v id="$new_id" '$1 ~ "^"repo":" && $2 == id { print $1 }' | wc -l)
 
@@ -96,7 +96,7 @@ pipeline {
                                         exit 0
                                     fi
 
-                                    docker images --format '{{.Repository}}:{{.Tag}} {{.ID}}
+                                    docker images --format '{{.Repository}}:{{.Tag}} {{.ID}}'
 
                                     dup_count=$(docker images --format '{{.Repository}}:{{.Tag}} {{.ID}}' | awk -v repo="$REPO" -v id="$new_id" '$1 ~ "^"repo":" && $2 == id { print $1 }' | wc -l)
 
