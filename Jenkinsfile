@@ -4,8 +4,7 @@ pipeline {
     }
 
     environment {
-        FRONTEND_IMAGE_BUILD = '0'
-        BACKEND_IMAGE_BUILD = '0'
+
     }
 
     stages {
@@ -69,10 +68,10 @@ pipeline {
                                     fi
 
                                     docker compose -f docker-compose-build.yml push backend
+
+                                    touch BACKEND_IMAGE_BUILDED
                                 '''
                             }
-
-                            env.BACKEND_IMAGE_BUILD = '1'
                         }
                     }
                 }
@@ -110,10 +109,10 @@ pipeline {
                                     fi
 
                                     docker compose -f docker-compose-build.yml push frontend
+
+                                    touch FRONTEND_IMAGE_BUILDED
                                 '''
                             }
-
-                            env.FRONTEND_IMAGE_BUILD = '1'
                         }
                     }
                 }
@@ -161,11 +160,11 @@ pipeline {
                             export KUBECONFIG="$KUBECONFIG_FILE"
                             export TAG="$SHORT_COMMIT_HASH"
 
-                            if [ "${BACKEND_IMAGE_BUILD}" = "1" ]; then
+                            if [ -f BACKEND_IMAGE_BUILDED ]; then
                                 kubectl -n fastapi-backend set image deployment/fastapi-backend-deployment fastapi-backend=${DOCKER_REGISTRY}/${DOCKER_IMAGE_BACKEND}:${TAG}
                             fi
 
-                            if [ "${FRONTEND_IMAGE_BUILD}" = "1" ]; then
+                            if [ -f FRONTEND_IMAGE_BUILDED ]; then
                                 kubectl -n fastapi-frontend set image deployment/fastapi-frontend-deployment fastapi-frontend=${DOCKER_REGISTRY}/${DOCKER_IMAGE_FRONTEND}:${TAG}
                             fi
                         '''
