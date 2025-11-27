@@ -173,10 +173,16 @@ pipeline {
 
                             if [ -f BACKEND_IMAGE_BUILDED ]; then
                                 kubectl -n fastapi-backend set image deployment/fastapi-backend-deployment fastapi-backend=${DOCKER_REGISTRY}/${DOCKER_IMAGE_BACKEND}:${TAG}
+
+                                docker tag ${DOCKER_REGISTRY}/${DOCKER_IMAGE_BACKEND}:${TAG} ${DOCKER_REGISTRY}/${DOCKER_IMAGE_BACKEND}:latest
+                                docker push ${DOCKER_REGISTRY}/${DOCKER_IMAGE_BACKEND}:latest
                             fi
 
                             if [ -f FRONTEND_IMAGE_BUILDED ]; then
                                 kubectl -n fastapi-frontend set image deployment/fastapi-frontend-deployment fastapi-frontend=${DOCKER_REGISTRY}/${DOCKER_IMAGE_FRONTEND}:${TAG}
+
+                                docker tag ${DOCKER_REGISTRY}/${DOCKER_IMAGE_FRONTEND}:${TAG} ${DOCKER_REGISTRY}/${DOCKER_IMAGE_FRONTEND}:latest
+                                docker push ${DOCKER_REGISTRY}/${DOCKER_IMAGE_FRONTEND}:latest
                             fi
                         '''
                     }
